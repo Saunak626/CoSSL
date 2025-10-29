@@ -246,28 +246,28 @@ def train(labeled_trainloader, unlabeled_trainloader, model, ema_model, optimize
     tfe_prob = [(max(num_labeled_data_per_class) - i) / max(num_labeled_data_per_class) for i in num_labeled_data_per_class]
     for batch_idx in range(args.val_iteration):
         try:
-            inputs_x, targets_x, _ = labeled_train_iter.next()
+            inputs_x, targets_x, _ = next(labeled_train_iter)
         except:
             labeled_train_iter = iter(labeled_trainloader)
-            inputs_x, targets_x, _ = labeled_train_iter.next()
+            inputs_x, targets_x, _ = next(labeled_train_iter)
 
         try:
-            (inputs_u, inputs_u2), gt_targets_u, idx_u = unlabeled_train_iter.next()
+            (inputs_u, inputs_u2), gt_targets_u, idx_u = next(unlabeled_train_iter)
         except:
             unlabeled_train_iter = iter(unlabeled_trainloader)
-            (inputs_u, inputs_u2), gt_targets_u, idx_u = unlabeled_train_iter.next()
+            (inputs_u, inputs_u2), gt_targets_u, idx_u = next(unlabeled_train_iter)
 
         try:
-            crt_input_x, crt_targets_x, _ = crt_labeled_iter.next()
+            crt_input_x, crt_targets_x, _ = next(crt_labeled_iter)
         except:
             crt_labeled_iter = iter(crt_labeled_loader)
-            crt_input_x, crt_targets_x, _ = crt_labeled_iter.next()
+            crt_input_x, crt_targets_x, _ = next(crt_labeled_iter)
 
         try:
-            crt_input_u, crt_targets_u, _ = crt_full_iter.next()
+            crt_input_u, crt_targets_u, _ = next(crt_full_iter)
         except:
             crt_full_iter = iter(crt_full_loader)
-            crt_input_u, crt_targets_u, _ = crt_full_iter.next()
+            crt_input_u, crt_targets_u, _ = next(crt_full_iter)
 
         # Measure data loading time
         data_time.update(time.time() - end)

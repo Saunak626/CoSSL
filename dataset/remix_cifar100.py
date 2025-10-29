@@ -4,8 +4,7 @@ from PIL import Image
 import torchvision
 import torch
 from torchvision.transforms import transforms
-from RandAugment import RandAugment
-from RandAugment.augmentations import CutoutDefault
+from dataset.randaugment import RandAugment
 
 cifar100_mean = (0.5071, 0.4867, 0.4408)  # equals np.mean(train_set.train_data, axis=(0,1,2))/255
 cifar100_std = (0.2675, 0.2565, 0.2761)  # equals np.std(train_set.train_data, axis=(0,1,2))/255
@@ -25,7 +24,6 @@ transform_strong = transforms.Compose([
     transforms.Normalize(cifar100_mean, cifar100_std)
 ])
 transform_strong.transforms.insert(0, RandAugment(3, 4))  # in official, here is RandAugment(2, 14)
-transform_strong.transforms.append(CutoutDefault(16))
 
 transform_val = transforms.Compose([
     transforms.ToTensor(),

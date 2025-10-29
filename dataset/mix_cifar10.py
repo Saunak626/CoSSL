@@ -4,8 +4,7 @@ from PIL import Image
 import torchvision
 import torch
 from torchvision.transforms import transforms
-from RandAugment import RandAugment
-from RandAugment.augmentations import CutoutDefault
+from dataset.randaugment import RandAugment
 
 # Parameters for data
 cifar10_mean = (0.4914, 0.4822, 0.4465) # equals np.mean(train_set.train_data, axis=(0,1,2))/255

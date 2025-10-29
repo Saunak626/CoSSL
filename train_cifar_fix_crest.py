@@ -462,16 +462,16 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, schedule
     model.train()
     for batch_idx in range(args.val_iteration):
         try:
-            inputs_x, targets_x, _ = labeled_train_iter.next()
+            inputs_x, targets_x, _ = next(labeled_train_iter)
         except:
             labeled_train_iter = iter(labeled_trainloader)
-            inputs_x, targets_x, _ = labeled_train_iter.next()
+            inputs_x, targets_x, _ = next(labeled_train_iter)
 
         try:
-            (inputs_u, inputs_u2, inputs_u3), gt_targets_u, idx_u = unlabeled_train_iter.next()
+            (inputs_u, inputs_u2, inputs_u3), gt_targets_u, idx_u = next(unlabeled_train_iter)
         except:
             unlabeled_train_iter = iter(unlabeled_trainloader)
-            (inputs_u, inputs_u2, inputs_u3), gt_targets_u, idx_u = unlabeled_train_iter.next()
+            (inputs_u, inputs_u2, inputs_u3), gt_targets_u, idx_u = next(unlabeled_train_iter)
 
         # Measure data loading time
         data_time.update(time.time() - end)

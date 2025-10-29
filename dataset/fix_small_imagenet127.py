@@ -8,8 +8,7 @@ import torch.utils.data as data
 import torchvision
 import torch
 from torchvision.transforms import transforms
-from RandAugment import RandAugment
-from RandAugment.augmentations import CutoutDefault
+from dataset.randaugment import RandAugment
 
 
 class TransformTwice:
@@ -52,7 +51,6 @@ def get_small_imagenet(root, img_size, labeled_percent=0.1, seed=0, return_stron
         transforms.Normalize(dataset_mean, dataset_std)
     ])
     transform_strong.transforms.insert(0, RandAugment(3, 4))
-    transform_strong.transforms.append(CutoutDefault(int(img_size / 2)))
 
     transform_val = transforms.Compose([
         transforms.ToTensor(),

@@ -112,7 +112,7 @@ def SolarizeAdd(img, v, max_v, bias=0, threshold=128):
     v = _int_parameter(v, max_v) + bias
     if random.random() < 0.5:
         v = -v
-    img_np = np.array(img).astype(np.int)
+    img_np = np.array(img).astype(np.int32)
     img_np = img_np + v
     img_np = np.clip(img_np, 0, 255)
     img_np = img_np.astype(np.uint8)
@@ -219,3 +219,30 @@ class RandAugmentMC(object):
                 img = op(img, v=v, max_v=max_v, bias=bias)
         img = CutoutAbs(img, int(self.img_size * 0.5))
         return img
+
+
+# 兼容外部RandAugment接口的包装类
+class RandAugment(object):
+    """兼容外部RandAugment(n, m)接口，自动检测图像尺寸"""
+    def __init__(self, n, m):
+        self.n = n
+        self.m = m
+        self.rand_augment = None
+
+    def __call__(self, img):
+        # 首次调用时根据图像尺寸选择合适的实现
+        if self.rand_augment is None:
+            img_size = img.size[0]  # 假设是正方形图像
+            if img_size == 32:
+                self.rand_augment = RandAugmentPC(self.n, self.m)
+            else:
+                self.rand_augment = RandAugmentMC(img_size, self.n, self.m)
+        return self.rand_augment(img)
+
+
+# 兼容外部CutoutDefault接口的函数
+def CutoutDefault(length):
+    """返回一个Cutout变换函数"""
+    def cutout_transform(img):
+        return CutoutAbs(img, length)
+    return cutout_transform

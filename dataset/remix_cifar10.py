@@ -4,8 +4,7 @@ from PIL import Image
 import torchvision
 import torch
 from torchvision.transforms import transforms
-from RandAugment import RandAugment
-from RandAugment.augmentations import CutoutDefault
+from dataset.randaugment import RandAugment
 
 cifar10_mean = (0.4914, 0.4822, 0.4465)
 cifar10_std = (0.2471, 0.2435, 0.2616)
@@ -25,7 +24,6 @@ transform_strong = transforms.Compose([
     transforms.Normalize(cifar10_mean, cifar10_std)
 ])
 transform_strong.transforms.insert(0, RandAugment(3, 4))
-transform_strong.transforms.append(CutoutDefault(16))
 
 transform_val = transforms.Compose([
     transforms.ToTensor(),
