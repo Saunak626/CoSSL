@@ -33,7 +33,7 @@ class TransformTwice:
         out2 = self.transform(inp)
         return out1, out2
 
-def get_cifar10(root, l_samples, u_samples, transform_train=transform_train, transform_val=transform_val, seed=0, download=False):
+def get_cifar10(root, l_samples, u_samples, transform_train=transform_train, transform_val=transform_val, seed=0, download=True):
     base_dataset = torchvision.datasets.CIFAR10(root, train=True, download=download)
     train_labeled_idxs, train_unlabeled_idxs = train_split(base_dataset.targets, l_samples, u_samples, seed)
 

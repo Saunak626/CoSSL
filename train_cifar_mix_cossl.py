@@ -99,11 +99,11 @@ def main():
     U_SAMPLES_PER_CLASS = make_imb_data(args.ratio * args.num_max, num_class, args.imb_ratio_u)
 
     if args.dataset == 'cifar10':
-        train_labeled_set, train_unlabeled_set, test_set = dataset_cifar10.get_cifar10('/BS/databases00/cifar-10',
+        train_labeled_set, train_unlabeled_set, test_set = dataset_cifar10.get_cifar10('./data/cifar-10',
                                                                                        N_SAMPLES_PER_CLASS,
                                                                                        U_SAMPLES_PER_CLASS, seed=args.manualSeed)
     elif args.dataset == 'cifar100':
-        train_labeled_set, train_unlabeled_set, test_set = dataset_cifar100.get_cifar100('/BS/databases00/cifar-100',
+        train_labeled_set, train_unlabeled_set, test_set = dataset_cifar100.get_cifar100('./data/cifar-100',
                                                                                          N_SAMPLES_PER_CLASS,
                                                                                          U_SAMPLES_PER_CLASS, seed=args.manualSeed)
     else:

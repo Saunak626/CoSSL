@@ -46,7 +46,7 @@ class TransformTwice:
 
 
 def get_cifar100(root, l_samples, u_samples, transform_train=transform_train, transform_strong=transform_strong,
-                transform_val=transform_val, seed=0, download=False):
+                transform_val=transform_val, seed=0, download=True):
     base_dataset = torchvision.datasets.CIFAR100(root, train=True, download=download)
     train_labeled_idxs, train_unlabeled_idxs = train_split(base_dataset.targets, l_samples, u_samples, seed)
 

@@ -140,7 +140,7 @@ def main():
     N_SAMPLES_PER_CLASS = make_imb_data(args.num_max, num_class, args.imb_ratio_l)
     U_SAMPLES_PER_CLASS = make_imb_data(args.ratio * args.num_max, num_class, args.imb_ratio_u)
 
-    train_labeled_set, train_unlabeled_set, test_set = dataset.get_food101('/BS/yfan/nobackup/food-101/',
+    train_labeled_set, train_unlabeled_set, test_set = dataset.get_food101('./data/food-101',
                                                                            N_SAMPLES_PER_CLASS, U_SAMPLES_PER_CLASS,
                                                                            seed=args.manualSeed)
 
