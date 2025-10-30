@@ -221,6 +221,9 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
     labeled_train_iter = iter(labeled_trainloader)
     unlabeled_train_iter = iter(unlabeled_trainloader)
 
+    # 打印间隔：每N个batch打印一次
+    print_interval = max(1, args.val_iteration // 10)  # 每个epoch打印约10次
+
     model.train()
     for batch_idx in range(args.val_iteration):
         try:
@@ -290,24 +293,27 @@ def train(labeled_trainloader, unlabeled_trainloader, model, optimizer, ema_opti
         batch_time.update(time.time() - end)
         end = time.time()
 
-        # plot progress
-        bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | ' \
-                      'Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | Mask: {mask:.4f}| ' \
-                      'Use_acc: {used_acc:.4f}'.format(
-                    batch=batch_idx + 1,
-                    size=args.val_iteration,
-                    data=data_time.avg,
-                    bt=batch_time.avg,
-                    total=bar.elapsed_td,
-                    eta=bar.eta_td,
-                    loss=losses.avg,
-                    loss_x=losses_x.avg,
-                    loss_u=losses_u.avg,
-                    mask=mask_prob.avg,
-                    used_acc=used_c.avg,
-                    )
-        bar.next()
+        # plot progress - 只在指定间隔打印
+        if (batch_idx + 1) % print_interval == 0 or batch_idx == 0:
+            bar.suffix = '({batch}/{size}) Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | ' \
+                          'Mask: {mask:.4f} | Use_acc: {used_acc:.4f}'.format(
+                        batch=batch_idx + 1,
+                        size=args.val_iteration,
+                        loss=losses.avg,
+                        loss_x=losses_x.avg,
+                        loss_u=losses_u.avg,
+                        mask=mask_prob.avg,
+                        used_acc=used_c.avg,
+                        )
+            bar.next()
+        else:
+            bar.next()
+
     bar.finish()
+
+    # 打印epoch统计信息
+    print(f'  Epoch [{epoch+1}] - Loss: {losses.avg:.4f} | Loss_x: {losses_x.avg:.4f} | Loss_u: {losses_u.avg:.4f} | '
+          f'Mask: {mask_prob.avg:.4f} | Total_acc: {total_c.avg:.4f} | Use_acc: {used_c.avg:.4f}')
 
     return (losses.avg, losses_x.avg, losses_u.avg, mask_prob.avg, total_c.avg, used_c.avg)
 
@@ -325,6 +331,9 @@ def validate(valloader, model, criterion, use_cuda, mode):
 
     end = time.time()
     bar = Bar(f'{mode}', max=len(valloader))
+
+    # 打印间隔：每N个batch打印一次
+    print_interval = max(1, len(valloader) // 5)  # 验证集打印约5次
 
     classwise_correct = torch.zeros(num_class).cuda()
     classwise_num = torch.zeros(num_class).cuda()
@@ -364,20 +373,18 @@ def validate(valloader, model, criterion, use_cuda, mode):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            # plot progress
-            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | ' \
-                          'Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
-                        batch=batch_idx + 1,
-                        size=len(valloader),
-                        data=data_time.avg,
-                        bt=batch_time.avg,
-                        total=bar.elapsed_td,
-                        eta=bar.eta_td,
-                        loss=losses.avg,
-                        top1=top1.avg,
-                        top5=top5.avg,
-                        )
-            bar.next()
+            # plot progress - 只在指定间隔打印
+            if (batch_idx + 1) % print_interval == 0 or batch_idx == 0:
+                bar.suffix = '({batch}/{size}) Loss: {loss:.4f} | top1: {top1:.4f} | top5: {top5:.4f}'.format(
+                            batch=batch_idx + 1,
+                            size=len(valloader),
+                            loss=losses.avg,
+                            top1=top1.avg,
+                            top5=top5.avg,
+                            )
+                bar.next()
+            else:
+                bar.next()
         bar.finish()
 
     # Major, Neutral, Minor
@@ -393,6 +400,11 @@ def validate(valloader, model, criterion, use_cuda, mode):
             GM *= (1/(100 * num_class)) ** (1/num_class)
         else:
             GM *= (classwise_acc[i]) ** (1/num_class)
+
+    # 打印验证集统计信息
+    print(f'  {mode} - Loss: {losses.avg:.4f} | Top1: {top1.avg:.4f} | Top5: {top5.avg:.4f} | '
+          f'Major: {section_acc[0]:.4f} | Neutral: {section_acc[1]:.4f} | Minor: {section_acc[2]:.4f} | GM: {GM:.4f}')
+
     return (losses.avg, top1.avg, section_acc.cpu().numpy(), GM)
 
 
