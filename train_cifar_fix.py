@@ -35,7 +35,7 @@ parser.add_argument('--epochs', default=500, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('--batch-size', default=64, type=int, metavar='N',
+parser.add_argument('--batch-size', default=256, type=int, metavar='N',
                     help='train batchsize')
 parser.add_argument('--lr', '--learning-rate', default=0.002, type=float,
                     metavar='LR', help='initial learning rate')
@@ -404,6 +404,10 @@ def validate(valloader, model, criterion, use_cuda, mode):
     # 打印验证集统计信息
     print(f'  {mode} - Loss: {losses.avg:.4f} | Top1: {top1.avg:.4f} | Top5: {top5.avg:.4f} | '
           f'Major: {section_acc[0]:.4f} | Neutral: {section_acc[1]:.4f} | Minor: {section_acc[2]:.4f} | GM: {GM:.4f}')
+
+    # 将GM转换为Python标量，避免CUDA张量转换错误
+    if isinstance(GM, torch.Tensor):
+        GM = GM.item()
 
     return (losses.avg, top1.avg, section_acc.cpu().numpy(), GM)
 

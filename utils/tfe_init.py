@@ -117,7 +117,8 @@ def TFE(labeled_loader, unlabeled_loader, tfe_model, num_classes, num_samples_pe
 
         # ****************** create TFE features for each class  ********************
         # create idx array for each class, per_cls_idx[i] contains all indices of images of class i
-        labeled_set_idx = torch.tensor(list(range(len(labeled_feature_stack))))
+        # 将索引张量移到GPU上，与labeled_target_stack保持一致，避免设备不匹配
+        labeled_set_idx = torch.tensor(list(range(len(labeled_feature_stack)))).cuda()
         labeled_set_per_cls_idx = [labeled_set_idx[labeled_target_stack == i] for i in range(num_classes)]
 
         augment_features = []  # newly generated tfe features will be appended here
@@ -132,7 +133,8 @@ def TFE(labeled_loader, unlabeled_loader, tfe_model, num_classes, num_samples_pe
                 current_cls_feats = labeled_feature_stack[labeled_target_stack == cls_id]
 
                 # create data not belonging to class i
-                other_labeled_data_idx = np.concatenate(labeled_set_per_cls_idx[:cls_id] + labeled_set_per_cls_idx[cls_id + 1:], axis=0)
+                # 使用torch.cat而不是np.concatenate，保持在GPU上
+                other_labeled_data_idx = torch.cat(labeled_set_per_cls_idx[:cls_id] + labeled_set_per_cls_idx[cls_id + 1:], dim=0)
                 other_cls_feats = torch.cat([labeled_feature_stack[other_labeled_data_idx], unlabeled_feature_stack], dim=0)
                 other_cls_probs = torch.cat([labeled_cls_prob_stack[other_labeled_data_idx], unlabeled_cls_prob_stack], dim=0)
 
@@ -222,10 +224,11 @@ def classifier_train(labeled_trainloader, model, optimizer, scheduler, ema_optim
     model.eval()
     for batch_idx in range(val_iteration):
         try:
-            inputs_x, targets_x = labeled_train_iter.next()
+            # Python 3.x使用next()而不是.next()
+            inputs_x, targets_x = next(labeled_train_iter)
         except:
             labeled_train_iter = iter(labeled_trainloader)
-            inputs_x, targets_x = labeled_train_iter.next()
+            inputs_x, targets_x = next(labeled_train_iter)
 
         data_time.update(time.time() - end)
 

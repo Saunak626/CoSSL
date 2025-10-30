@@ -310,8 +310,10 @@ def train(labeled_trainloader, unlabeled_trainloader, model, ema_model, optimize
             select_mask = max_p.ge(args.tau).float()
 
             total_acc = p_hat.cpu().eq(gt_targets_u).float().view(-1)
-            if select_mask.sum() != 0:
-                used_c.update(total_acc[select_mask != 0].mean(0).item(), select_mask.sum())
+            select_mask_cpu = select_mask.cpu()  # 将select_mask移到CPU以避免设备不匹配
+            select_mask_sum = select_mask.sum().item()  # 转换为Python标量
+            if select_mask_sum != 0:
+                used_c.update(total_acc[select_mask_cpu != 0].mean(0).item(), select_mask_sum)
             mask_prob.update(select_mask.mean().item())
             total_c.update(total_acc.mean(0).item())
 
