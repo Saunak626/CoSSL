@@ -248,6 +248,10 @@ def train(labeled_trainloader, unlabeled_trainloader, model, ema_model, optimize
     end = time.time()
 
     bar = Bar('Training', max=args.val_iteration)
+
+    # 打印间隔：每N个batch打印一次
+    print_interval = max(1, args.val_iteration // 10)  # 每个epoch打印约10次
+
     labeled_train_iter = iter(labeled_trainloader)
     unlabeled_train_iter = iter(unlabeled_trainloader)
     crt_labeled_iter = iter(crt_labeled_loader)
@@ -429,27 +433,32 @@ def train(labeled_trainloader, unlabeled_trainloader, model, ema_model, optimize
         batch_time.update(time.time() - end)
         end = time.time()
 
-        # plot progress
-        bar.suffix = '({batch}/{size}) Batch:{bt:.3f}s |Total:{total:} |ETA:{eta:} |' \
-                     'Loss:{loss:.4f} |Loss_x:{loss_x:.4f} |Loss_u:{loss_u:.4f} |Loss_r:{loss_r:.4f} |' \
-                     'Loss_e:{loss_e:.4f} |Loss_t:{loss_t:.4f} |Total_acc:{total_c:.4f} |teacher_acc:{teacher_acc:.4f}'.format(
-                    batch=batch_idx + 1,
-                    size=args.val_iteration,
-                    # data=data_time.avg,
-                    bt=batch_time.avg,
-                    total=bar.elapsed_td,
-                    eta=bar.eta_td,
-                    loss=losses.avg,
-                    loss_x=losses_x.avg,
-                    loss_u=losses_u.avg,
-                    loss_r=losses_r.avg,
-                    loss_e=losses_e.avg,
-                    loss_t=losses_teacher.avg,
-                    total_c=total_c.avg,
-                    teacher_acc=teacher_acc.avg,
-                    )
-        bar.next()
+        # plot progress - 只在指定间隔打印
+        if (batch_idx + 1) % print_interval == 0 or batch_idx == 0:
+            bar.suffix = '({batch}/{size}) Loss: {loss:.4f} | Loss_x: {loss_x:.4f} | Loss_u: {loss_u:.4f} | ' \
+                         'Loss_r: {loss_r:.4f} | Loss_e: {loss_e:.4f} | Loss_t: {loss_t:.4f} | ' \
+                         'Total_acc: {total_c:.4f} | teacher_acc: {teacher_acc:.4f}'.format(
+                        batch=batch_idx + 1,
+                        size=args.val_iteration,
+                        loss=losses.avg,
+                        loss_x=losses_x.avg,
+                        loss_u=losses_u.avg,
+                        loss_r=losses_r.avg,
+                        loss_e=losses_e.avg,
+                        loss_t=losses_teacher.avg,
+                        total_c=total_c.avg,
+                        teacher_acc=teacher_acc.avg,
+                        )
+            bar.next()
+        else:
+            bar.next()
+
     bar.finish()
+
+    # 打印epoch统计信息
+    print(f'  Epoch [{epoch+1}] - Loss: {losses.avg:.4f} | Loss_x: {losses_x.avg:.4f} | Loss_u: {losses_u.avg:.4f} | '
+          f'Loss_r: {losses_r.avg:.4f} | Loss_e: {losses_e.avg:.4f} | Loss_t: {losses_teacher.avg:.4f} | '
+          f'Total_acc: {total_c.avg:.4f} | teacher_acc: {teacher_acc.avg:.4f}')
 
     return (losses.avg, losses_x.avg, losses_u.avg, losses_teacher.avg, total_c.avg, teacher_acc.avg, emp_distb_u)
 
@@ -467,6 +476,9 @@ def validate_teacher(valloader, model, head, criterion, use_cuda, mode):
 
     end = time.time()
     bar = Bar(f'{mode}', max=len(valloader))
+
+    # 打印间隔：每N个batch打印一次
+    print_interval = max(1, len(valloader) // 5)  # 每个epoch打印约5次
 
     classwise_correct = torch.zeros(num_class).cuda()
     classwise_num = torch.zeros(num_class).cuda()
@@ -503,19 +515,18 @@ def validate_teacher(valloader, model, head, criterion, use_cuda, mode):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            # plot progress
-            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | ' \
-                         'Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
-                         batch=batch_idx + 1,
-                         size=len(valloader),
-                         data=data_time.avg,
-                         bt=batch_time.avg,
-                         total=bar.elapsed_td,
-                         eta=bar.eta_td,
-                         loss=losses.avg,
-                         top1=top1.avg,
-                         top5=top5.avg)
-            bar.next()
+            # plot progress - 只在指定间隔打印
+            if (batch_idx + 1) % print_interval == 0 or batch_idx == 0:
+                bar.suffix = '({batch}/{size}) Loss: {loss:.4f} | top1: {top1:.4f} | top5: {top5:.4f}'.format(
+                             batch=batch_idx + 1,
+                             size=len(valloader),
+                             loss=losses.avg,
+                             top1=top1.avg,
+                             top5=top5.avg)
+                bar.next()
+            else:
+                bar.next()
+
         bar.finish()
 
     # Major, Neutral, Minor
@@ -531,6 +542,14 @@ def validate_teacher(valloader, model, head, criterion, use_cuda, mode):
             GM *= (1/(100 * num_class)) ** (1/num_class)
         else:
             GM *= (classwise_acc[i]) ** (1/num_class)
+
+    # 打印验证集统计信息
+    print(f'  {mode} - Loss: {losses.avg:.4f} | Top1: {top1.avg:.4f} | Top5: {top5.avg:.4f} | '
+          f'Major: {section_acc[0]:.4f} | Neutral: {section_acc[1]:.4f} | Minor: {section_acc[2]:.4f} | GM: {GM:.4f}')
+
+    # 将GM转换为Python标量，避免CUDA张量转换错误
+    if isinstance(GM, torch.Tensor):
+        GM = GM.item()
 
     return (losses.avg, top1.avg, section_acc.cpu().numpy(), GM)
 
