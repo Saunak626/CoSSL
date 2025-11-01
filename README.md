@@ -17,6 +17,18 @@ If you have any questions on this repository or the related paper, feel free to 
 * [Citation](#citation)
 * [Acknowledgements](#acknowledgements)
 
+#### 📚 完整文档
+
+* **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - 完整的项目使用指南（中文）
+  - 详细的训练脚本使用说明
+  - 参数配置指南
+  - 辅助工具使用方法
+  - 常见问题解答
+* **[TRAINING_METRICS_EXPLAINED.md](TRAINING_METRICS_EXPLAINED.md)** - 训练指标详解（中文）
+  - 所有训练和验证指标的详细说明
+  - 指标计算方法和解读方式
+  - 针对不平衡数据集的特殊意义
+
 ## Introduction
 
 Standard semi-supervised learning (SSL) using class-balanced datasets has shown great progress to leverage unlabeled data effectively. However, the more realistic setting of class-imbalanced data - called imbalanced SSL - is largely underexplored and standard SSL tends to underperform. In this paper, we propose a novel co-learning framework (CoSSL), which decouples representation and classifier learning while coupling them closely. To handle the data imbalance, we devise Tail-class Feature Enhancement (TFE) for classifier learning. Furthermore, the current evaluation protocol for imbalanced SSL focuses only on balanced test sets, which has limited practicality in real-world scenarios. Therefore, we further conduct a comprehensive evaluation under various shifted test distributions. In experiments, we show that our approach outperforms other methods over a large range of shifted distributions, achieving state-of-the-art performance on benchmark datasets ranging from CIFAR-10, CIFAR-100, ImageNet, to Food-101.  

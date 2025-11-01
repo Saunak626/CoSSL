@@ -219,6 +219,10 @@ def classifier_train(labeled_trainloader, model, optimizer, scheduler, ema_optim
     end = time.time()
 
     bar = Bar('Training', max=val_iteration)
+
+    # 打印间隔：每N个batch打印一次
+    print_interval = max(1, val_iteration // 10)  # 每个epoch打印约10次
+
     labeled_train_iter = iter(labeled_trainloader)
 
     model.eval()
@@ -256,17 +260,17 @@ def classifier_train(labeled_trainloader, model, optimizer, scheduler, ema_optim
         batch_time.update(time.time() - end)
         end = time.time()
 
-        bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | ' \
-                     'Loss: {loss:.4f} | Train_Acc: {train_acc:.4f}'.format(
-                     batch=batch_idx + 1,
-                     size=val_iteration,
-                     data=data_time.avg,
-                     bt=batch_time.avg,
-                     total=bar.elapsed_td,
-                     eta=bar.eta_td,
-                     loss=losses.avg,
-                     train_acc=train_acc.avg)
-        bar.next()
+        # plot progress - 只在指定间隔打印
+        if (batch_idx + 1) % print_interval == 0 or batch_idx == 0:
+            bar.suffix = '({batch}/{size}) Loss: {loss:.4f} | Train_Acc: {train_acc:.4f}'.format(
+                         batch=batch_idx + 1,
+                         size=val_iteration,
+                         loss=losses.avg,
+                         train_acc=train_acc.avg)
+            bar.next()
+        else:
+            bar.next()
+
     bar.finish()
 
     return losses.avg, train_acc.avg
